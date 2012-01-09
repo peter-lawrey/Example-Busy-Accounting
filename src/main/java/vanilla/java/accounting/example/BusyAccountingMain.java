@@ -1,5 +1,9 @@
 package vanilla.java.accounting.example;
 
+import vanilla.java.affinity.AffinityLock;
+import vanilla.java.clock.ClockSupport;
+import vanilla.java.clock.IClock;
+
 import java.io.IOException;
 import java.util.Random;
 
@@ -12,13 +16,16 @@ public class BusyAccountingMain {
     public static final boolean FLUSH = Boolean.parseBoolean(System.getProperty("flush", "false"));
 
     public static void main(String... args) throws IOException {
+        AffinityLock al = AffinityLock.acquireLock();
+
         System.out.print("-Dtransactions=" + TRANSACTIONS);
         System.out.print(" -Dbase.dir=" + BASE_DIR);
-        System.out.println(" -Dflush=" + FLUSH);
+        System.out.print(" -Dflush=" + FLUSH);
+        System.out.println(" -Daffinity.reserved=" + Long.toHexString(AffinityLock.RESERVED_AFFINITY));
         int accounts = getAccountNumber(TRANSACTIONS);
         int[] nums = generateRandom(accounts);
         long[] successCount = {0L}, insufficientFundsCount = {0L};
-        IClock clock = SystemClock.INSTANCE;
+        IClock clock = ClockSupport.INSTANCE;
         LatencyCounter latencyCounter = new LatencyCounter(50, 10000);
         IBusyAccountJournal listener = new MyBusyAccountJournal(clock, latencyCounter, successCount, insufficientFundsCount);
         IBusyAccountJournal journal = new VanillaBusyAccountJournal(BASE_DIR, FLUSH, listener);
@@ -51,6 +58,7 @@ public class BusyAccountingMain {
                 latencyCounter.percentile(0.999),
                 latencyCounter.percentile(0.9999)
         );
+        al.release();
     }
 
     private static int[] generateRandom(int accounts) {

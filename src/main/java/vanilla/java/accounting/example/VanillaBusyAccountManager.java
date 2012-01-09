@@ -1,5 +1,7 @@
 package vanilla.java.accounting.example;
 
+import vanilla.java.clock.IClock;
+
 import java.io.*;
 
 /**
@@ -30,7 +32,7 @@ public class VanillaBusyAccountManager implements IBusyAccountManager {
         logInitialBalance(accountNo, balance, timeSubmittedNS);
         accountBalances[accountNo] = balance;
         if (flush)
-        transferLog.flush();
+            transferLog.flush();
     }
 
     @Override
@@ -45,7 +47,7 @@ public class VanillaBusyAccountManager implements IBusyAccountManager {
             journal.transferSuccess(accountNoFrom, accountNoTo, amount, timeSubmittedNS, clock.nanoTime());
         }
         if (flush)
-        transferLog.flush();
+            transferLog.flush();
     }
 
     @Override
